@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+RealDash OBD2 communication description file.
+Requires RealDash version 1.5.8 or newer
+-->
+<OBD2>
+  <init>
+    <!-- after first init command is sent, RealDash reads whatever data comes from serial during next 1500ms.
+         This is done to purge the serial buffers. -->
+    <!-- do not remove 'atl0', 'ate0', or 'ats0' commands. Those settings are assumed when parsing the
+         reply from adapter. -->
+    <command send="atd"></command>
+    <command send="atz"></command>
+    <command send="atat1"></command>
+    <command send="atst62"></command>
+    <command send="atsp0"></command>
+    <command send="ate0"></command>
+    <command send="atl0"></command>
+    <command send="ats0"></command>
+    <command send="ath1"></command>
+    <command send="atdpn"></command>
+    <command send="0100"></command>
+    <command send="0120"></command>
+  </init>
+
+ 
+  
+  Sub SetRelay(RelayNumber As Int, RelayState As Int)
+
+    Dim NumRelays As Int = 8
+
+    If RelayNumber < 1 or RelayNumber > NumRelays Then
+        Log("Relay " & RelayNumber & "?  Really?")    'help me help you
+        Return
+    End If
+
+    'protocol per "documentation" found at: https://www.aliexpress.com/item/32892267055.html
+    'Control instruction(Hexadecimal format):
+    'Channel 1 ON: A00101A2
+    'Channel 1 OFF: A00100A1
+    'Channel 2 ON: A00201A3
+    'Channel 2 OFF: A00200A2
+
+    Dim Cmd(4) As Byte
+
+    'Sync/Header = A0 (hexadecimal) = 160 (decimal)
+    Cmd(0) = 0xA0
+ 
+    'Relay Number : 01 = first relay, 02 = second relay (and etc for > 2 relays, presumably)
+    Cmd(1) = relayNumber
+
+    'Relay State : 00 = off, 01 = on
+    Cmd(2) = Min(Abs(RelayState), 1)    '= 0 if RelayState 0, otherwise = 1
+
+    'Checksum = sum of preceding bytes (eg, Channel 2 OFF = A0 + 02 + 00 = A2)
+    Cmd(3) = Cmd(0) + Cmd(1) + Cmd(2)
+
+    manager.WriteData(BLEService, BLECharacteristic, Cmd)
+
+End Sub
+
+'and perhaps these two helper functions (not necessary, just nice):
+
+Sub SetRelayOff(RelayNumber As Int)
+
+    SetRelay(RelayNumber, 0)
+
+End If
+
+Sub SetRelayOn(RelayNumber As Int)
+
+    SetRelay(RelayNumber, 1)
+
+End If
+</OBD2>
