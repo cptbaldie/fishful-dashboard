@@ -29,9 +29,7 @@ Requires RealDash version 1.5.8 or newer
 
     Dim NumRelays As Int = 8
 
-    If RelayNumber < 1 or RelayNumber > NumRelays Then
-        Log("Relay " & RelayNumber & "?  Really?")    'help me help you
-        Return
+    
     End If
 
     'protocol per "documentation" found at: https://www.aliexpress.com/item/32892267055.html
